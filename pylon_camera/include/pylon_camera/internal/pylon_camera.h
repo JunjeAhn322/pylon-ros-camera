@@ -207,6 +207,8 @@ public:
 
     virtual std::string setTriggerActivation(const int& value);
 
+    virtual std::string setAcquisitionFrameRateEnable(const bool& value);
+
     virtual int getTriggerActivation();
 
     virtual std::string setTriggerDelay(const float& delayValue);

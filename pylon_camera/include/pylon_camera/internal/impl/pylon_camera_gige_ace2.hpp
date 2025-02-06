@@ -81,6 +81,7 @@ bool PylonGigEAce2Camera::applyCamSpecificStartupSettings(const PylonCameraParam
 {
     try
     {
+        ROS_INFO("hello");
         //cam_->StartGrabbing();
         grabbingStarting();
         cam_->StopGrabbing();
@@ -92,7 +93,7 @@ bool PylonGigEAce2Camera::applyCamSpecificStartupSettings(const PylonCameraParam
             cam_->UserSetLoad.Execute();
 
             // UserSetSelector_Default overrides Software Trigger Mode !!
-            cam_->TriggerSource.SetValue(Basler_UniversalCameraParams::TriggerSource_Software);
+            cam_->TriggerSource.SetValue(Basler_UniversalCameraParams::TriggerSource_Line3);
             cam_->TriggerMode.SetValue(Basler_UniversalCameraParams::TriggerMode_On);
             /* Thresholds for the AutoExposure Functions:
                 *  - lower limit can be used to get rid of changing light conditions

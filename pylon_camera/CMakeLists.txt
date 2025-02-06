@@ -44,6 +44,14 @@ set(
      "--extensions=cpp,h,hpp" "--filter=-runtime/references,-readability/todo,-build/include_what_you_use"
 )
 
+set(PYLON_LIBS
+    GCBase_gcc_v3_1_Basler_pylon
+    GenApi_gcc_v3_1_Basler_pylon
+    pylonbase
+    pylonc
+    pylon_TL_usb
+)
+
 roslint_cpp(
     src/${PROJECT_NAME}/binary_exposure_search.cpp
     src/${PROJECT_NAME}/encoding_conversions.cpp
@@ -71,7 +79,11 @@ roslaunch_add_file_check(launch)
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${catkin_INCLUDE_DIRS}
-    ${Pylon_INCLUDE_DIRS}
+    /home/mars_ugv/Pylon-SDK/include
+)
+
+link_directories(
+    /home/mars_ugv/Pylon-SDK/lib
 )
 
 # Add library
@@ -88,6 +100,7 @@ target_link_libraries(
     ${PROJECT_NAME}
      ${catkin_LIBRARIES}
      ${Pylon_LIBRARIES}
+     ${PYLON_LIBS}
 )
 
 add_dependencies(
@@ -119,11 +132,13 @@ add_executable(
 target_link_libraries(
     set_device_user_id
      ${Pylon_LIBRARIES}
+     ${PYLON_LIBS}
 )
 
 target_link_libraries(
     IPConfigAuto
      ${Pylon_LIBRARIES}
+     ${PYLON_LIBS}
 )
 
 add_dependencies(

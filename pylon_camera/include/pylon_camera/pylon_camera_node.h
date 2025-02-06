@@ -42,6 +42,9 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
+#include </home/mars_ugv/catkin_ws/src/livox_camera_calib/include/CustomMsg.h>
+#include </home/mars_ugv/catkin_ws/src/livox_camera_calib/include/CustomPoint.h>
+#include <sensor_msgs/PointCloud2.h>
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
@@ -637,6 +640,8 @@ protected:
      */
     std::string setTriggerActivation(const int& value);
 
+    std::string setAcquisitionFrameRateEnable(const bool& value);
+
     /**
      * Service callback for setting the camera trigger delay value
      * @param req request
@@ -1221,8 +1226,6 @@ protected:
     camera_control_msgs::currentParams params;
 
 
-
-
     PylonCamera* pylon_camera_;
 
     image_transport::ImageTransport* it_;
@@ -1231,6 +1234,9 @@ protected:
 
     image_transport::Publisher* img_rect_pub_;
     image_geometry::PinholeCameraModel* pinhole_model_;
+
+    ros::Subscriber lidar_sub_;
+    ros::Time latest_lidar_timestamp_;
 
     GrabImagesAS grab_imgs_raw_as_;
     GrabImagesAS* grab_imgs_rect_as_;
@@ -1252,6 +1258,8 @@ protected:
     ros::Timer diagnostics_trigger_;
     void create_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
     void create_camera_info_diagnostics(diagnostic_updater::DiagnosticStatusWrapper &stat);
+    void lidarCallback(const livox_ros_driver::CustomMsg& msg);
+    // void lidarCallback(const sensor_msgs::PointCloud2::ConstPtr& msg);
 };
 
 }  // namespace pylon_camera

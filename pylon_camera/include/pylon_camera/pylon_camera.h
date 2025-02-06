@@ -647,6 +647,8 @@ public:
      */
     virtual int getTriggerActivation() = 0;
 
+    virtual std::string setAcquisitionFrameRateEnable(const bool& value) = 0;
+
     /**
      * set camera trigger delay value  
      * @param delayValue required dely value in µs 

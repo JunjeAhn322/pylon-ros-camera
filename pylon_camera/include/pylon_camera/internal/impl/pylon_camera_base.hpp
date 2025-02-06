@@ -437,6 +437,7 @@ bool PylonCameraImpl<CameraTrait>::grab(uint8_t* image)
 
     // If camera is not grabbing, don't grab
     if (!cam_->IsGrabbing()){
+        ROS_ERROR("Camera is not grabbing. Check camera state.");
         return false;
     }
 
@@ -474,6 +475,7 @@ bool PylonCameraImpl<CameraTrait>::grab(Pylon::CGrabResultPtr& grab_result)
 
      // If camera is not grabbing, don't grab
     if (!cam_->IsGrabbing()){
+        ROS_ERROR("Camera is not grabbing. Check camera state. // lowest");
         return false;
     }
 
@@ -2014,6 +2016,27 @@ int PylonCameraImpl<CameraTraitT>::getTriggerSource()
     {
         return -2; // Error
     }
+}
+
+template <typename CameraTraitT>
+std::string PylonCameraImpl<CameraTraitT>::setAcquisitionFrameRateEnable(const bool& value){
+    try
+    {   if ( GenApi::IsAvailable(cam_->AcquisitionFrameRateEnable) )
+        {
+            cam_->AcquisitionFrameRateEnable = value;
+        }
+        else 
+        {
+            ROS_ERROR_STREAM("Error while trying to change the trigger activation type. The connected Camera not supporting this feature");
+            return "The connected Camera not supporting this feature";
+        }
+    }
+    catch ( const GenICam::GenericException &e )
+    {
+        ROS_ERROR_STREAM("An exception while setting the trigger activation type occurred:" << e.GetDescription());
+        return e.GetDescription();
+    }
+    return "done";
 }
 
 template <typename CameraTraitT>
