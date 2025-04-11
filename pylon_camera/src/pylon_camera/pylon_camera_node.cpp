@@ -74,7 +74,6 @@ PylonCameraNode::PylonCameraNode()
     diagnostics_updater_.add("camera_availability", this, &PylonCameraNode::create_diagnostics);
     diagnostics_updater_.add("intrinsic_calibration", this, &PylonCameraNode::create_camera_info_diagnostics);
     diagnostics_trigger_ = nh_.createTimer(ros::Duration(2), &PylonCameraNode::diagnostics_timer_callback_, this);
-    // lidar_sub_ = nh_.subscribe("/livox/lidar", 10, &PylonCameraNode::lidarCallback,this);
     lidar_sub_ = nh_.subscribe("/livox/lidar", 10, &PylonCameraNode::lidarCallback,this);
 
     componentStatusPublisher = nh_.advertise<dnb_msgs::ComponentStatus>("/pylon_camera_node/status", 5, true); // DNB component status publisher
@@ -467,7 +466,7 @@ uint32_t  PylonCameraNode::getNumSubscribersRaw() const
 
 uint32_t PylonCameraNode::getNumSubscribersRect() const
 {
-    return camera_info_manager_->isCalibrated() ? 0 : 0;
+    return false;
 }
 
 uint32_t  PylonCameraNode::getNumSubscribersInfo() const
@@ -478,6 +477,10 @@ uint32_t  PylonCameraNode::getNumSubscribersInfo() const
 void PylonCameraNode::lidarCallback(const livox_ros_driver::CustomMsg& msg){
     latest_lidar_timestamp_ = msg.header.stamp;
 }
+
+// void PylonCameraNode::lidarCallback(const sensor_msgs::PointCloud2::ConstPtr& msg){
+//     latest_lidar_timestamp_ = msg->header.stamp;
+// }
 
 void PylonCameraNode::spin()
 {   
@@ -930,133 +933,133 @@ const std::string& PylonCameraNode::cameraFrame() const
 // }
 
 // cali version 2
-void PylonCameraNode::setupInitialCameraInfo(sensor_msgs::CameraInfo& cam_info_msg) {
-    std_msgs::Header header;
-    header.frame_id = pylon_camera_parameter_set_.cameraFrame();
-    header.stamp = ros::Time::now();
-    cam_info_msg.header = header;
-
-    // Image resolution from calibration
-    cam_info_msg.height = 1200;
-    cam_info_msg.width = 1920;
-
-    // Distortion model and parameters
-    cam_info_msg.distortion_model = "plumb_bob";
-    cam_info_msg.D = {0.037991, -0.054455, 0.002211, 0.003054, 0.000000}; // Distortion coefficients
-
-    // Intrinsic Camera Matrix (K)
-    cam_info_msg.K = {1130.011805, 0.000000, 997.515249,
-                      0.000000, 1130.386363, 594.610762,
-                      0.000000, 0.000000, 1.000000};
-
-    // Rectification Matrix (R) - Since it's a monocular camera, it's identity
-    cam_info_msg.R = {1.0, 0.0, 0.0,
-                      0.0, 1.0, 0.0,
-                      0.0, 0.0, 1.0};
-
-    // Projection Matrix (P) - Typically same as K but expanded for rectification
-    cam_info_msg.P = {1126.775146, 0.000000, 1007.350003, 0.000000,
-                      0.000000, 1139.260010, 596.549862, 0.000000,
-                      0.000000, 0.000000, 1.000000, 0.000000};
-
-    // Binning settings (if any)
-    cam_info_msg.binning_x = pylon_camera_->currentBinningX();
-    cam_info_msg.binning_y = pylon_camera_->currentBinningY();
-
-    // Region of Interest (ROI) settings - Default to full image
-    cam_info_msg.roi.x_offset = 0;
-    cam_info_msg.roi.y_offset = 0;
-    cam_info_msg.roi.height = 0;
-    cam_info_msg.roi.width = 0;
-}
-
-
-// void PylonCameraNode::setupInitialCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
-// {
+// void PylonCameraNode::setupInitialCameraInfo(sensor_msgs::CameraInfo& cam_info_msg) {
 //     std_msgs::Header header;
 //     header.frame_id = pylon_camera_parameter_set_.cameraFrame();
 //     header.stamp = ros::Time::now();
-
-//     // http://www.ros.org/reps/rep-0104.html
-//     // If the camera is uncalibrated, the matrices D, K, R, P should be left
-//     // zeroed out. In particular, clients may assume that K[0] == 0.0
-//     // indicates an uncalibrated camera.
 //     cam_info_msg.header = header;
 
-//     // The image dimensions with which the camera was calibrated. Normally
-//     // this will be the full camera resolution in pixels. They remain fix, even
-//     // if binning is applied
-//     cam_info_msg.height = pylon_camera_->imageRows();
-//     cam_info_msg.width = pylon_camera_->imageCols();
+//     // Image resolution from calibration
+//     cam_info_msg.height = 1200;
+//     cam_info_msg.width = 1920;
 
-//     // The distortion model used. Supported models are listed in
-//     // sensor_msgs/distortion_models.h. For most cameras, "plumb_bob" - a
-//     // simple model of radial and tangential distortion - is sufficient.
-//     // Empty D and distortion_model indicate that the CameraInfo cannot be used
-//     // to rectify points or images, either because the camera is not calibrated
-//     // or because the rectified image was produced using an unsupported
-//     // distortion model, e.g. the proprietary one used by Bumblebee cameras
-//     // [http://www.ros.org/reps/rep-0104.html].
-//     cam_info_msg.distortion_model = "";
+//     // Distortion model and parameters
+//     cam_info_msg.distortion_model = "plumb_bob";
+//     cam_info_msg.D = {0.037991, -0.054455, 0.002211, 0.003054, 0.000000}; // Distortion coefficients
 
-//     // The distortion parameters, size depending on the distortion model.
-//     // For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3) -> float64[] D.
-//     cam_info_msg.D = std::vector<double>(5, 0.);
+//     // Intrinsic Camera Matrix (K)
+//     cam_info_msg.K = {1130.011805, 0.000000, 997.515249,
+//                       0.000000, 1130.386363, 594.610762,
+//                       0.000000, 0.000000, 1.000000};
 
-//     // Intrinsic camera matrix for the raw (distorted) images.
-//     //     [fx  0 cx]
-//     // K = [ 0 fy cy]  --> 3x3 row-major matrix
-//     //     [ 0  0  1]
-//     // Projects 3D points in the camera coordinate frame to 2D pixel coordinates
-//     // using the focal lengths (fx, fy) and principal point (cx, cy).
-//     cam_info_msg.K.assign(0.0);
+//     // Rectification Matrix (R) - Since it's a monocular camera, it's identity
+//     cam_info_msg.R = {1.0, 0.0, 0.0,
+//                       0.0, 1.0, 0.0,
+//                       0.0, 0.0, 1.0};
 
-//     // Rectification matrix (stereo cameras only)
-//     // A rotation matrix aligning the camera coordinate system to the ideal
-//     // stereo image plane so that epipolar lines in both stereo images are parallel.
-//     cam_info_msg.R.assign(0.0);
+//     // Projection Matrix (P) - Typically same as K but expanded for rectification
+//     cam_info_msg.P = {1126.775146, 0.000000, 1007.350003, 0.000000,
+//                       0.000000, 1139.260010, 596.549862, 0.000000,
+//                       0.000000, 0.000000, 1.000000, 0.000000};
 
-//     // Projection/camera matrix
-//     //     [fx'  0  cx' Tx]
-//     // P = [ 0  fy' cy' Ty]  --> # 3x4 row-major matrix
-//     //     [ 0   0   1   0]
-//     // By convention, this matrix specifies the intrinsic (camera) matrix of the
-//     // processed (rectified) image. That is, the left 3x3 portion is the normal
-//     // camera intrinsic matrix for the rectified image. It projects 3D points
-//     // in the camera coordinate frame to 2D pixel coordinates using the focal
-//     // lengths (fx', fy') and principal point (cx', cy') - these may differ from
-//     // the values in K. For monocular cameras, Tx = Ty = 0. Normally, monocular
-//     // cameras will also have R = the identity and P[1:3,1:3] = K.
-//     // For a stereo pair, the fourth column [Tx Ty 0]' is related to the
-//     // position of the optical center of the second camera in the first
-//     // camera's frame. We assume Tz = 0 so both cameras are in the same
-//     // stereo image plane. The first camera always has Tx = Ty = 0.
-//     // For the right (second) camera of a horizontal stereo pair,
-//     // Ty = 0 and Tx = -fx' * B, where B is the baseline between the cameras.
-//     // Given a 3D point [X Y Z]', the projection (x, y) of the point onto the
-//     // rectified image is given by:
-//     // [u v w]' = P * [X Y Z 1]'
-//     //        x = u / w
-//     //        y = v / w
-//     //  This holds for both images of a stereo pair.
-//     cam_info_msg.P.assign(0.0);
-
-//     // Binning refers here to any camera setting which combines rectangular
-//     // neighborhoods of pixels into larger "super-pixels." It reduces the
-//     // resolution of the output image to (width / binning_x) x (height / binning_y).
-//     // The default values binning_x = binning_y = 0 is considered the same as
-//     // binning_x = binning_y = 1 (no subsampling).
+//     // Binning settings (if any)
 //     cam_info_msg.binning_x = pylon_camera_->currentBinningX();
 //     cam_info_msg.binning_y = pylon_camera_->currentBinningY();
 
-//     // Region of interest (subwindow of full camera resolution), given in full
-//     // resolution (unbinned) image coordinates. A particular ROI always denotes
-//     // the same window of pixels on the camera sensor, regardless of binning
-//     // settings. The default setting of roi (all values 0) is considered the same
-//     // as full resolution (roi.width = width, roi.height = height).
-//     cam_info_msg.roi.x_offset = cam_info_msg.roi.y_offset = 0;
-//     cam_info_msg.roi.height = cam_info_msg.roi.width = 0;
+//     // Region of Interest (ROI) settings - Default to full image
+//     cam_info_msg.roi.x_offset = 0;
+//     cam_info_msg.roi.y_offset = 0;
+//     cam_info_msg.roi.height = 0;
+//     cam_info_msg.roi.width = 0;
 // }
+
+
+void PylonCameraNode::setupInitialCameraInfo(sensor_msgs::CameraInfo& cam_info_msg)
+{
+    std_msgs::Header header;
+    header.frame_id = pylon_camera_parameter_set_.cameraFrame();
+    header.stamp = ros::Time::now();
+
+    // http://www.ros.org/reps/rep-0104.html
+    // If the camera is uncalibrated, the matrices D, K, R, P should be left
+    // zeroed out. In particular, clients may assume that K[0] == 0.0
+    // indicates an uncalibrated camera.
+    cam_info_msg.header = header;
+
+    // The image dimensions with which the camera was calibrated. Normally
+    // this will be the full camera resolution in pixels. They remain fix, even
+    // if binning is applied
+    cam_info_msg.height = pylon_camera_->imageRows();
+    cam_info_msg.width = pylon_camera_->imageCols();
+
+    // The distortion model used. Supported models are listed in
+    // sensor_msgs/distortion_models.h. For most cameras, "plumb_bob" - a
+    // simple model of radial and tangential distortion - is sufficient.
+    // Empty D and distortion_model indicate that the CameraInfo cannot be used
+    // to rectify points or images, either because the camera is not calibrated
+    // or because the rectified image was produced using an unsupported
+    // distortion model, e.g. the proprietary one used by Bumblebee cameras
+    // [http://www.ros.org/reps/rep-0104.html].
+    cam_info_msg.distortion_model = "";
+
+    // The distortion parameters, size depending on the distortion model.
+    // For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3) -> float64[] D.
+    cam_info_msg.D = std::vector<double>(5, 0.);
+
+    // Intrinsic camera matrix for the raw (distorted) images.
+    //     [fx  0 cx]
+    // K = [ 0 fy cy]  --> 3x3 row-major matrix
+    //     [ 0  0  1]
+    // Projects 3D points in the camera coordinate frame to 2D pixel coordinates
+    // using the focal lengths (fx, fy) and principal point (cx, cy).
+    cam_info_msg.K.assign(0.0);
+
+    // Rectification matrix (stereo cameras only)
+    // A rotation matrix aligning the camera coordinate system to the ideal
+    // stereo image plane so that epipolar lines in both stereo images are parallel.
+    cam_info_msg.R.assign(0.0);
+
+    // Projection/camera matrix
+    //     [fx'  0  cx' Tx]
+    // P = [ 0  fy' cy' Ty]  --> # 3x4 row-major matrix
+    //     [ 0   0   1   0]
+    // By convention, this matrix specifies the intrinsic (camera) matrix of the
+    // processed (rectified) image. That is, the left 3x3 portion is the normal
+    // camera intrinsic matrix for the rectified image. It projects 3D points
+    // in the camera coordinate frame to 2D pixel coordinates using the focal
+    // lengths (fx', fy') and principal point (cx', cy') - these may differ from
+    // the values in K. For monocular cameras, Tx = Ty = 0. Normally, monocular
+    // cameras will also have R = the identity and P[1:3,1:3] = K.
+    // For a stereo pair, the fourth column [Tx Ty 0]' is related to the
+    // position of the optical center of the second camera in the first
+    // camera's frame. We assume Tz = 0 so both cameras are in the same
+    // stereo image plane. The first camera always has Tx = Ty = 0.
+    // For the right (second) camera of a horizontal stereo pair,
+    // Ty = 0 and Tx = -fx' * B, where B is the baseline between the cameras.
+    // Given a 3D point [X Y Z]', the projection (x, y) of the point onto the
+    // rectified image is given by:
+    // [u v w]' = P * [X Y Z 1]'
+    //        x = u / w
+    //        y = v / w
+    //  This holds for both images of a stereo pair.
+    cam_info_msg.P.assign(0.0);
+
+    // Binning refers here to any camera setting which combines rectangular
+    // neighborhoods of pixels into larger "super-pixels." It reduces the
+    // resolution of the output image to (width / binning_x) x (height / binning_y).
+    // The default values binning_x = binning_y = 0 is considered the same as
+    // binning_x = binning_y = 1 (no subsampling).
+    cam_info_msg.binning_x = pylon_camera_->currentBinningX();
+    cam_info_msg.binning_y = pylon_camera_->currentBinningY();
+
+    // Region of interest (subwindow of full camera resolution), given in full
+    // resolution (unbinned) image coordinates. A particular ROI always denotes
+    // the same window of pixels on the camera sensor, regardless of binning
+    // settings. The default setting of roi (all values 0) is considered the same
+    // as full resolution (roi.width = width, roi.height = height).
+    cam_info_msg.roi.x_offset = cam_info_msg.roi.y_offset = 0;
+    cam_info_msg.roi.height = cam_info_msg.roi.width = 0;
+}
 
 /**
  * Waits till the pylon_camera_ isReady() observing a given timeout

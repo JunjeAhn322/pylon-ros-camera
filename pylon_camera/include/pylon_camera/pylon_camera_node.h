@@ -42,8 +42,8 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
-#include </home/mars_ugv/catkin_ws/src/livox_camera_calib/include/CustomMsg.h>
-#include </home/mars_ugv/catkin_ws/src/livox_camera_calib/include/CustomPoint.h>
+#include "CustomMsg.h"
+#include "CustomPoint.h"
 #include <sensor_msgs/PointCloud2.h>
 
 #include <pylon_camera/pylon_camera_parameter.h>

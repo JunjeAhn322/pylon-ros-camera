@@ -79,11 +79,11 @@ roslaunch_add_file_check(launch)
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${catkin_INCLUDE_DIRS}
-    /home/mars_ugv/Pylon-SDK/include
+    /home/raibo-con/catkin_ws/src/Pylon-SDK/include
 )
 
 link_directories(
-    /home/mars_ugv/Pylon-SDK/lib
+    /home/raibo-con/catkin_ws/src/Pylon-SDK/lib
 )
 
 # Add library
